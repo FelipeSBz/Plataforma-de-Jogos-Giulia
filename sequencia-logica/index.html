@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequência Lógica - Encontre a Imagem que Falta</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 3px;
+            font-size: 1.8em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #667eea;
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .sequence-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .sequence-item {
+            aspect-ratio: 1;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4em;
+            background: white;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .sequence-item.missing {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border: 3px dashed #e17055;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .missing-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.4em;
+            color: #e17055;
+            font-weight: bold;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .option-item {
+            aspect-ratio: 1;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5em;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option-item:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .option-item.correct {
+            background: #00b894;
+            border-color: #00b894;
+            animation: correctAnim 0.5s ease;
+        }
+
+        .option-item.wrong {
+            background: #d63031;
+            border-color: #d63031;
+            animation: wrongAnim 0.5s ease;
+        }
+
+        @keyframes correctAnim {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes wrongAnim {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-next {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-next:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-next:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-restart {
+            background: #e17055;
+            color: white;
+        }
+
+        .btn-restart:hover {
+            background: #d65f42;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(225, 112, 85, 0.4);
+        }
+
+        .feedback {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 1.1em;
+            font-weight: bold;
+            min-height: 22px;
+        }
+
+        .feedback.correct {
+            color: #00b894;
+        }
+
+        .feedback.wrong {
+            color: #d63031;
+        }
+
+        .game-over {
+            text-align: center;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .game-over h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .final-score {
+            font-size: 3em;
+            color: #00b894;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧩 Sequência Lógica</h1>
+        <p class="subtitle">Descubra qual imagem completa a sequência!</p>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label">Nível</div>
+                <div class="stat-value" id="level">1</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Pontos</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Acertos</div>
+                <div class="stat-value" id="correct">0</div>
+            </div>
+        </div>
+
+        <div id="game-area">
+            <div class="sequence-grid" id="sequence"></div>
+            <div class="feedback" id="feedback"></div>
+            <div class="options-grid" id="options"></div>
+            <div class="buttons">
+                <button class="btn-next" id="nextBtn" disabled>Próximo Nível</button>
+                <button class="btn-restart" id="restartBtn">Reiniciar</button>
+                <button class="btn-voltar" id="voltarBtn">Voltar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const patterns = [
+            {
+                sequence: ['🍎', '🍊', '🍎', '🍊', '🍎', '🍊', '🍎', '🍊', null],
+                answer: '🍎',
+                options: ['🍎', '🍊', '🍌', '🍇']
+            },
+            {
+                sequence: ['⭐', '⭐', '🌙', '⭐', '⭐', '🌙', '⭐', '⭐', null],
+                answer: '🌙',
+                options: ['⭐', '🌙', '☀️', '🌟']
+            },
+            {
+                sequence: ['🔴', '🔵', '🟢', '🔴', '🔵', '🟢', '🔴', '🔵', null],
+                answer: '🟢',
+                options: ['🔴', '🔵', '🟢', '🟡']
+            },
+            {
+                sequence: ['1️⃣', '2️⃣', '3️⃣', '1️⃣', '2️⃣', '3️⃣', '1️⃣', '2️⃣', null],
+                answer: '3️⃣',
+                options: ['1️⃣', '2️⃣', '3️⃣', '4️⃣']
+            },
+            {
+                sequence: ['🐶', '🐱', '🐶', '🐱', '🐶', '🐱', '🐶', '🐱', null],
+                answer: '🐶',
+                options: ['🐶', '🐱', '🐭', '🐹']
+            },
+            {
+                sequence: ['❤️', '❤️', '💙', '❤️', '❤️', '💙', '❤️', '❤️', null],
+                answer: '💙',
+                options: ['❤️', '💙', '💚', '💛']
+            },
+            {
+                sequence: ['🌸', '🌼', '🌸', '🌼', '🌸', '🌼', '🌸', '🌼', null],
+                answer: '🌸',
+                options: ['🌸', '🌼', '🌺', '🌻']
+            },
+            {
+                sequence: ['🎵', '🎶', '🎵', '🎶', '🎵', '🎶', '🎵', '🎶', null],
+                answer: '🎵',
+                options: ['🎵', '🎶', '🎸', '🎹']
+            },
+            {
+                sequence: ['☀️', '☁️', '🌧️', '☀️', '☁️', '🌧️', '☀️', '☁️', null],
+                answer: '🌧️',
+                options: ['☀️', '☁️', '🌧️', '⛈️']
+            },
+            {
+                sequence: ['🍕', '🍔', '🌮', '🍕', '🍔', '🌮', '🍕', '🍔', null],
+                answer: '🌮',
+                options: ['🍕', '🍔', '🌮', '🌭']
+            }
+        ];
+
+        let currentLevel = 0;
+        let score = 0;
+        let correct = 0;
+        let answered = false;
+
+        function loadLevel() {
+            answered = false;
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+
+            const pattern = patterns[currentLevel];
+            const sequenceEl = document.getElementById('sequence');
+            const optionsEl = document.getElementById('options');
+
+            sequenceEl.innerHTML = '';
+            pattern.sequence.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'sequence-item' + (item === null ? ' missing' : '');
+                if (item === null) {
+                    div.innerHTML = '<span class="missing-label">?</span>';
+                } else {
+                    div.textContent = item;
+                }
+                sequenceEl.appendChild(div);
+            });
+
+            optionsEl.innerHTML = '';
+            pattern.options.forEach(option => {
+                const div = document.createElement('div');
+                div.className = 'option-item';
+                div.textContent = option;
+                div.onclick = () => checkAnswer(option, div);
+                optionsEl.appendChild(div);
+            });
+
+            document.getElementById('level').textContent = currentLevel + 1;
+        }
+
+        function checkAnswer(selected, element) {
+            if (answered) return;
+            
+            answered = true;
+            const pattern = patterns[currentLevel];
+            const feedback = document.getElementById('feedback');
+
+            if (selected === pattern.answer) {
+                element.classList.add('correct');
+                feedback.textContent = '🎉 Correto! Muito bem!';
+                feedback.className = 'feedback correct';
+                score += 10;
+                correct++;
+                document.getElementById('score').textContent = score;
+                document.getElementById('correct').textContent = correct;
+                document.getElementById('nextBtn').disabled = false;
+            } else {
+                element.classList.add('wrong');
+                feedback.textContent = '❌ Ops! Tente novamente.';
+                feedback.className = 'feedback wrong';
+                setTimeout(() => {
+                    element.classList.remove('wrong');
+                    answered = false;
+                }, 800);
+            }
+        }
+
+        document.getElementById('nextBtn').onclick = () => {
+            currentLevel++;
+            if (currentLevel >= patterns.length) {
+                showGameOver();
+            } else {
+                loadLevel();
+            }
+        };
+        
+        document.getElementById('voltarBtn').onclick = () => {
+            window.location.href = '../index.html';
+        };
+
+        document.getElementById('restartBtn').onclick = () => {
+            currentLevel = 0;
+            score = 0;
+            correct = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('correct').textContent = correct;
+            document.getElementById('game-area').style.display = 'block';
+            loadLevel();
+        };
+
+        function showGameOver() {
+            const gameArea = document.getElementById('game-area');
+            gameArea.innerHTML = `
+                <div class="game-over">
+                    <h2>🎊 Parabéns!</h2>
+                    <p>Você completou todos os níveis!</p>
+                    <div class="final-score">${score} pontos</div>
+                    <p>Acertos: ${correct}/${patterns.length}</p>
+                </div>
+                <div class="buttons">
+                    <button class="btn-restart" onclick="location.reload()">Jogar Novamente</button>
+                </div>
+            `;
+        }
+
+        loadLevel();
+    </script>
+</body>
+</html>

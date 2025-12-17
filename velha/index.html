@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Velha</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .controls-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+        }
+
+        .status {
+            text-align: center;
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            margin-bottom: 20px;
+            color: #333;
+            min-height: 30px;
+            font-weight: 600;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            aspect-ratio: 1;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .cell {
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            border: none;
+            border-radius: 15px;
+            font-size: clamp(1rem, 4vw, 2rem);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cell:hover:not(.taken) {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .cell.taken {
+            cursor: not-allowed;
+        }
+
+        .cell.x {
+            color: #667eea;
+            animation: popIn 0.3s ease;
+        }
+
+        .cell.o {
+            color: #764ba2;
+            animation: popIn 0.3s ease;
+        }
+
+        .cell.winner {
+            background: linear-gradient(145deg, #ffd700, #ffed4e);
+            animation: pulse 0.6s ease infinite;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .mode-selector, .difficulty {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn, .diff-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            color: #667eea;
+        }
+
+        .mode-btn:hover, .diff-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .mode-btn.active, .diff-btn.active {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 100px;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .reset-btn {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .reset-btn:active {
+            transform: translateY(0);
+        }
+
+        .score {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            border-radius: 10px;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: bold;
+        }
+
+        .score-x {
+            color: #667eea;
+        }
+
+        .score-o {
+            color: #764ba2;
+        }
+
+        .score-draw {
+            color: #999;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            .board {
+                gap: 8px;
+            }
+
+            .cell {
+                border-radius: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⭕ Jogo da Velha ❌</h1>
+        <div class="status" id="status">Vez do jogador X</div>        
+
+        <div class="game-layout">
+            <div class="game-area">
+                
+                <div class="board" id="board">
+                    <button class="cell" data-index="0"></button>
+                    <button class="cell" data-index="1"></button>
+                    <button class="cell" data-index="2"></button>
+                    <button class="cell" data-index="3"></button>
+                    <button class="cell" data-index="4"></button>
+                    <button class="cell" data-index="5"></button>
+                    <button class="cell" data-index="6"></button>
+                    <button class="cell" data-index="7"></button>
+                    <button class="cell" data-index="8"></button>
+                </div>
+            </div>
+
+            <div class="controls-area">
+                <div class="mode-selector" id="modeSelector">
+                    <button class="mode-btn active" onclick="setMode('pvp')">👥 2 Jogadores</button>
+                    <button class="mode-btn" onclick="setMode('pve')">🤖 vs Computador</button>
+                </div>
+
+                <div class="difficulty" id="difficulty" style="display: none;">
+                    <button class="diff-btn active" onclick="setDifficulty('easy')">😊 Fácil</button>
+                    <button class="diff-btn" onclick="setDifficulty('medium')">😐 Médio</button>
+                    <button class="diff-btn" onclick="setDifficulty('hard')">😈 Difícil</button>
+                </div>
+
+                <div class="controls">
+                    <button class="reset-btn" onclick="resetGame()">🔄 Reiniciar</button>
+                    <button class="reset-btn" onclick="voltar()">Voltar</button>
+                </div>
+
+                <div class="score">
+                    <div class="score-item">
+                        <div class="score-label">Jogador X</div>
+                        <div class="score-value score-x" id="scoreX">0</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">Empates</div>
+                        <div class="score-value score-draw" id="scoreDraw">0</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">Jogador O</div>
+                        <div class="score-value score-o" id="scoreO">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let gameActive = true;
+        let gameMode = 'pvp'; // 'pvp' ou 'pve'
+        let difficulty = 'easy'; // 'easy', 'medium', 'hard'
+        let scores = {
+            X: 0,
+            O: 0,
+            draw: 0
+        };
+
+        const winPatterns = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+
+        const cells = document.querySelectorAll('.cell');
+        const statusDisplay = document.getElementById('status');
+
+        cells.forEach(cell => {
+            cell.addEventListener('click', handleCellClick);
+        });
+
+        function setMode(mode) {
+            gameMode = mode;
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            modeButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const difficultyDiv = document.getElementById('difficulty');
+            if (mode === 'pve') {
+                difficultyDiv.style.display = 'flex';
+            } else {
+                difficultyDiv.style.display = 'none';
+            }
+            
+            resetGame();
+        }
+
+        function setDifficulty(level) {
+            difficulty = level;
+            const diffButtons = document.querySelectorAll('.diff-btn');
+            diffButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            resetGame();
+        }
+
+        function handleCellClick(e) {
+            const index = parseInt(e.target.dataset.index);
+
+            if (board[index] !== '' || !gameActive) {
+                return;
+            }
+
+            makeMove(index);
+
+            // Se for modo vs computador e o jogo ainda estiver ativo
+            if (gameMode === 'pve' && gameActive && currentPlayer === 'O') {
+                setTimeout(computerMove, 500);
+            }
+        }
+
+        function makeMove(index) {
+            board[index] = currentPlayer;
+            cells[index].textContent = currentPlayer;
+            cells[index].classList.add('taken', currentPlayer.toLowerCase());
+
+            if (checkWin()) {
+                gameActive = false;
+                highlightWinner();
+                scores[currentPlayer]++;
+                updateScores();
+                const winner = gameMode === 'pve' && currentPlayer === 'O' ? 'Computador' : `Jogador ${currentPlayer}`;
+                statusDisplay.textContent = `🎉 ${winner} venceu!`;
+                return;
+            }
+
+            if (checkDraw()) {
+                gameActive = false;
+                scores.draw++;
+                updateScores();
+                statusDisplay.textContent = '🤝 Empate!';
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            const nextPlayer = gameMode === 'pve' && currentPlayer === 'O' ? 'Computador' : `Jogador ${currentPlayer}`;
+            statusDisplay.textContent = `Vez do ${nextPlayer}`;
+        }
+
+        function computerMove() {
+            if (!gameActive) return;
+
+            let move;
+            
+            if (difficulty === 'easy') {
+                move = getRandomMove();
+            } else if (difficulty === 'medium') {
+                // 50% chance de jogar inteligente, 50% aleatório
+                move = Math.random() > 0.5 ? getBestMove() : getRandomMove();
+            } else {
+                move = getBestMove();
+            }
+
+            if (move !== -1) {
+                makeMove(move);
+            }
+        }
+
+        function getRandomMove() {
+            const availableMoves = board
+                .map((cell, index) => cell === '' ? index : null)
+                .filter(val => val !== null);
+            
+            if (availableMoves.length === 0) return -1;
+            
+            return availableMoves[Math.floor(Math.random() * availableMoves.length)];
+        }
+
+        function getBestMove() {
+            // Tenta ganhar
+            let move = findWinningMove('O');
+            if (move !== -1) return move;
+
+            // Bloqueia vitória do jogador
+            move = findWinningMove('X');
+            if (move !== -1) return move;
+
+            // Tenta pegar o centro
+            if (board[4] === '') return 4;
+
+            // Tenta pegar um canto
+            const corners = [0, 2, 6, 8];
+            const availableCorners = corners.filter(i => board[i] === '');
+            if (availableCorners.length > 0) {
+                return availableCorners[Math.floor(Math.random() * availableCorners.length)];
+            }
+
+            // Pega qualquer posição disponível
+            return getRandomMove();
+        }
+
+        function findWinningMove(player) {
+            for (let pattern of winPatterns) {
+                const values = pattern.map(i => board[i]);
+                const playerCount = values.filter(v => v === player).length;
+                const emptyCount = values.filter(v => v === '').length;
+
+                if (playerCount === 2 && emptyCount === 1) {
+                    return pattern[values.indexOf('')];
+                }
+            }
+            return -1;
+        }
+
+        function checkWin() {
+            return winPatterns.some(pattern => {
+                return pattern.every(index => {
+                    return board[index] === currentPlayer;
+                });
+            });
+        }
+
+        function highlightWinner() {
+            winPatterns.forEach(pattern => {
+                if (pattern.every(index => board[index] === currentPlayer)) {
+                    pattern.forEach(index => {
+                        cells[index].classList.add('winner');
+                    });
+                }
+            });
+        }
+
+        function checkDraw() {
+            return board.every(cell => cell !== '');
+        }
+
+        function resetGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameActive = true;
+            statusDisplay.textContent = 'Vez do Jogador X';
+            
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.className = 'cell';
+            });
+        }
+
+        function voltar() {
+            window.location.href = '../index.html';
+        }
+        
+        function updateScores() {
+            document.getElementById('scoreX').textContent = scores.X;
+            document.getElementById('scoreO').textContent = scores.O;
+            document.getElementById('scoreDraw').textContent = scores.draw;
+        }
+    </script>
+</body>
+</html>

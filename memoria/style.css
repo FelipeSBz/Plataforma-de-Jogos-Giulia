@@ -1,0 +1,89 @@
+/* Styles with CSS variables for themes, responsive board and panels */
+:root{
+  --bg: #f7f7fb;
+  --card-bg: white;
+  --card-face: #111827;
+  --accent: #7c3aed;
+  --panel-bg: white;
+  --muted: #6b7280;
+}
+[data-theme="dark"]{
+  --bg:#0b1220;
+  --card-bg:#0f1724;
+  --card-face:#e6eef8;
+  --accent:#60a5fa;
+  --panel-bg:#071026;
+  --muted:#94a3b8;
+}
+[data-theme="colorful"]{
+  --bg:linear-gradient(135deg,#fff7ed,#ecfeff);
+  --card-bg:linear-gradient(180deg,#fff,#fff9f0);
+  --card-face:#0f1724;
+  --accent:#ef4444;
+  --panel-bg:#fffaf0;
+  --muted:#6b7280;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background:var(--bg);
+  color:var(--card-face);
+  -webkit-font-smoothing:antialiased;
+  padding:16px;
+}
+
+.app{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.header h1{margin:0;font-size:1.4rem}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.controls label{font-size:0.9rem;color:var(--muted)}
+.controls select, .controls button{padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.08);background:var(--panel-bg)}
+
+button{cursor:pointer}
+button.secondary{background:transparent;border:1px solid rgba(0,0,0,0.08)}
+
+.status{display:flex;gap:12px;justify-content:center;font-weight:600;color:var(--muted)}
+
+main{display:flex;gap:16px;align-items:flex-start}
+.board{
+  display:grid;
+  gap:10px;
+  justify-content:center;
+  flex:1;
+  padding:8px;
+}
+
+.card-tile{
+  width:80px;height:80px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  background:var(--card-bg);box-shadow:0 6px 18px rgba(15,23,42,0.06);font-size:32px;cursor:pointer;
+  user-select:none;position:relative;transition:transform 300ms ease, box-shadow 200ms;
+  border:2px solid rgba(0,0,0,0.04)
+}
+.card-tile:focus{outline:3px solid rgba(124,58,237,0.18)}
+.card-tile.flipped{transform:rotateY(180deg)}
+.card-tile.matched{opacity:0.85;box-shadow:0 10px 24px rgba(0,0,0,0.08)}
+
+.side{width:260px;display:flex;flex-direction:column;gap:12px}
+.panel{padding:12px;border-radius:10px;background:var(--panel-bg);box-shadow:0 6px 18px rgba(15,23,42,0.04)}
+.history ol{margin:0;padding-left:18px;max-height:220px;overflow:auto}
+
+.footer{text-align:center;color:var(--muted);padding:8px}
+
+/* Responsive grid columns based on --cols variable */
+:root{--cols:4}
+.board{grid-template-columns:repeat(var(--cols), 1fr)}
+
+/* Small screens */
+@media (max-width:900px){
+  main{flex-direction:column}
+  .side{width:100%}
+  :root{--cols:4}
+}
+@media (max-width:600px){
+  :root{--cols:3}
+  .card-tile{width:70px;height:70px;font-size:28px}
+}

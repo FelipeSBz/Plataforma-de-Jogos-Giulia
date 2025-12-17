@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Giulia 1.0</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand">Giulia</a>
+
+      <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="site-nav">
+        <span class="hamburger"></span>
+      </button>
+
+      <nav id="site-nav" class="site-nav" aria-label="Navegação principal">
+        <ul class="nav-list">
+          <li><a href="index.html" class="nav-link">Início</a></li>
+          <li><a href="sobre.html" class="nav-link">Sobre</a></li>
+        </ul>
+
+        <div class="nav-actions">
+          
+          <button id="theme-toggle" class="theme-toggle" aria-pressed="false" title="Alternar tema">🌙</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main-content" id="main">
+
+    <section class="features">
+      <article class="card">
+        <center><a href="./sequencia-logica/index.html"><img src="./img/sequencia.png" alt="Jogo de sequencia logica" width="100" height="100"></a></center>
+        <center><p>Jogo de sequencia lógica.</p></center>
+      </article>
+      <article class="card">
+        <center><a href="./datilografia/index.html"><img src="./img/maqEscrever.png" alt="Jogo de datilografia" width="100" height="100"></a></center>
+        <center><p>Jogo para treinar datilografia.</p></center>
+      </article>
+      <article class="card">
+        <center><a href="./forca/index.html"><img src="./img/lupa.png" alt="Jogo de forca" width="100" height="100"></a></center>
+        <center><p>Jogo da forca.</p></center>
+      </article>
+      <article class="card">
+        <center><a href="./memoria/index.html"><img src="./img/memoria.png" alt="Jogo da memoria" width="100" height="100"></a></center>
+        <center><p>Jogo da memória.</p></center>
+      </article>
+      <article class="card">
+        <center><a href="./quebra-cabeca/index.html"><img src="./img/quebraCabeca.png" alt="Jogo de quebra-cabeça" width="100" height="100"></a></center>
+        <center><p>Jogo de quebra-cabeça.</p></center>
+      </article>
+      <article class="card">
+        <center><a href="./velha/index.html"><img src="./img/velha.png" alt="Jogo de velha" width="100" height="100"></a></center>
+        <center><p>Jogo da velha.</p></center>
+      </article>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="year"></span> Giulia 1.0 — GPLv3</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

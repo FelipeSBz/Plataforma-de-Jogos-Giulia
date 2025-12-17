@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quebra-Cabeça - Jogo Puzzle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+        }
+
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .info-item {
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .info-item span {
+            color: #667eea;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 10px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .difficulty-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .puzzle-container {
+            display: grid;
+            gap: 2px;
+            background: #ddd;
+            padding: 2px;
+            border-radius: 10px;
+            margin: 0 auto;
+            max-width: 500px;
+            aspect-ratio: 1;
+        }
+
+        .puzzle-piece {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(1.5rem, 5vw, 3rem);
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 5px;
+            user-select: none;
+        }
+
+        .puzzle-piece:hover {
+            transform: scale(0.95);
+            opacity: 0.8;
+        }
+
+        .puzzle-piece.empty {
+            background: #f0f0f0;
+            cursor: default;
+        }
+
+        .puzzle-piece.empty:hover {
+            transform: none;
+            opacity: 1;
+        }
+
+        .win-message {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .win-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            animation: bounce 0.5s;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .win-content h2 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .win-content p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .info-bar {
+                font-size: 14px;
+            }
+
+            button {
+                font-size: 14px;
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧩 Quebra-Cabeça</h1>
+        
+        <div class="info-bar">
+            <div class="info-item">Movimentos: <span id="moves">0</span></div>
+            <div class="info-item">Tempo: <span id="timer">00:00</span></div>
+        </div>
+
+        <div class="difficulty-selector">
+            <button class="difficulty-btn active" data-size="3">Fácil (3x3)</button>
+            <button class="difficulty-btn" data-size="4">Médio (4x4)</button>
+            <button class="difficulty-btn" data-size="5">Difícil (5x5)</button>
+        </div>
+
+        <div class="controls">
+            <button class="btn-primary" id="shuffle">Embaralhar</button>
+            <button class="btn-secondary" id="solve">Resolver</button>
+            <button class="btn-secondary" id="voltar">Voltar</button>
+        </div>
+
+        <div class="puzzle-container" id="puzzle"></div>
+    </div>
+
+    <div class="win-message" id="winMessage">
+        <div class="win-content">
+            <h2>🎉 Parabéns!</h2>
+            <p>Você completou o quebra-cabeça!</p>
+            <p><strong>Movimentos:</strong> <span id="finalMoves"></span></p>
+            <p><strong>Tempo:</strong> <span id="finalTime"></span></p>
+            <button class="btn-primary" onclick="closeWinMessage()">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <script>
+        let gridSize = 3;
+        let tiles = [];
+        let emptyIndex = gridSize * gridSize - 1;
+        let moves = 0;
+        let startTime = null;
+        let timerInterval = null;
+
+        function init() {
+            tiles = Array.from({length: gridSize * gridSize}, (_, i) => i);
+            emptyIndex = tiles.length - 1;
+            moves = 0;
+            updateMoves();
+            stopTimer();
+            renderPuzzle();
+        }
+
+        function renderPuzzle() {
+            const puzzle = document.getElementById('puzzle');
+            puzzle.innerHTML = '';
+            puzzle.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            
+            tiles.forEach((value, index) => {
+                const piece = document.createElement('div');
+                piece.className = 'puzzle-piece';
+                
+                if (value === emptyIndex) {
+                    piece.classList.add('empty');
+                } else {
+                    piece.textContent = value + 1;
+                    piece.onclick = () => moveTile(index);
+                }
+                
+                puzzle.appendChild(piece);
+            });
+        }
+
+        function moveTile(index) {
+            if (!startTime) startTimer();
+            
+            const emptyPos = tiles.indexOf(emptyIndex);
+            const row = Math.floor(index / gridSize);
+            const col = index % gridSize;
+            const emptyRow = Math.floor(emptyPos / gridSize);
+            const emptyCol = emptyPos % gridSize;
+            
+            const isAdjacent = 
+                (Math.abs(row - emptyRow) === 1 && col === emptyCol) ||
+                (Math.abs(col - emptyCol) === 1 && row === emptyRow);
+            
+            if (isAdjacent) {
+                [tiles[index], tiles[emptyPos]] = [tiles[emptyPos], tiles[index]];
+                moves++;
+                updateMoves();
+                renderPuzzle();
+                
+                if (checkWin()) {
+                    stopTimer();
+                    showWinMessage();
+                }
+            }
+        }
+
+        function shuffle() {
+            stopTimer();
+            moves = 0;
+            updateMoves();
+            
+            for (let i = 0; i < 1000; i++) {
+                const emptyPos = tiles.indexOf(emptyIndex);
+                const validMoves = getValidMoves(emptyPos);
+                const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                [tiles[emptyPos], tiles[randomMove]] = [tiles[randomMove], tiles[emptyPos]];
+            }
+            
+            renderPuzzle();
+        }
+
+        function getValidMoves(emptyPos) {
+            const row = Math.floor(emptyPos / gridSize);
+            const col = emptyPos % gridSize;
+            const moves = [];
+            
+            if (row > 0) moves.push(emptyPos - gridSize);
+            if (row < gridSize - 1) moves.push(emptyPos + gridSize);
+            if (col > 0) moves.push(emptyPos - 1);
+            if (col < gridSize - 1) moves.push(emptyPos + 1);
+            
+            return moves;
+        }
+
+        function solve() {
+            init();
+        }
+        
+        function voltar() {
+            window.location.href = '../index.html';
+        }
+
+        function checkWin() {
+            for (let i = 0; i < tiles.length - 1; i++) {
+                if (tiles[i] !== i) return false;
+            }
+            return true;
+        }
+
+        function updateMoves() {
+            document.getElementById('moves').textContent = moves;
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            } else {
+                startTime = null;
+                document.getElementById('timer').textContent = '00:00';
+            }
+        }
+
+        function updateTimer() {
+            if (!startTime) return;
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+        }
+
+        function showWinMessage() {
+            document.getElementById('finalMoves').textContent = moves;
+            document.getElementById('finalTime').textContent = document.getElementById('timer').textContent;
+            document.getElementById('winMessage').style.display = 'flex';
+        }
+
+        function closeWinMessage() {
+            document.getElementById('winMessage').style.display = 'none';
+            shuffle();
+        }
+
+        document.getElementById('shuffle').onclick = shuffle;
+        document.getElementById('solve').onclick = solve;
+        document.getElementById('voltar').onclick = voltar;
+
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.onclick = function() {
+                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                gridSize = parseInt(this.dataset.size);
+                emptyIndex = gridSize * gridSize - 1;
+                init();
+                shuffle();
+            };
+        });
+
+        init();
+        shuffle();
+    </script>
+</body>
+</html>

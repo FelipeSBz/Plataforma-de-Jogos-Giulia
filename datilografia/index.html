@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datilografia - Fuja do Fantasma!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 20px;
+            max-width: 900px;
+            width: 95%;
+        }
+
+        #gameCanvas {
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            display: block;
+            width: 100%;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        #ui {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .stat {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        #typingArea {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        #currentLetter {
+            font-size: 80px;
+            font-weight: bold;
+            color: #764ba2;
+            min-height: 100px;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        #typingInput {
+            font-size: 24px;
+            padding: 12px 20px;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        #typingInput:focus {
+            border-color: #764ba2;
+            box-shadow: 0 0 15px rgba(118, 75, 162, 0.3);
+        }
+
+        #typingInput.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        #typingInput.incorrect {
+            border-color: #f44336;
+            background: #ffebee;
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        #startScreen, #gameOver {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            text-align: center;
+            z-index: 1000;
+        }
+
+        #startScreen {
+            display: block;
+        }
+
+        #startScreen h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 42px;
+        }
+
+        #startScreen p {
+            font-size: 18px;
+            color: #666;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+
+        #gameOver h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 36px;
+        }
+
+        #gameOver p {
+            font-size: 20px;
+            margin: 10px 0;
+            color: #333;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .instructions {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <h1>👻 Datilografia</h1>
+        <p><strong>Fuja do Fantasma!</strong></p>
+        <p>📝 Digite as letras que aparecem na tela para correr</p>
+        <p>⚡ Cada letra correta acelera você e move o cenário</p>
+        <p>👻 Se o fantasma te alcançar, você perde uma vida</p>
+        <p>🎯 Mantenha a velocidade alta para sobreviver!</p>
+        <button onclick="startGame()">🎮 Iniciar Jogo</button>
+    </div>
+
+    <div id="gameContainer">
+        <div id="ui">
+            <button onclick="voltar()">Voltar</button>
+            <div class="stat">🏃 Distância: <span id="distance">0</span>m</div>
+            <div class="stat">⚡ Pontos: <span id="score">0</span></div>
+            <div class="stat">❤️ Vidas: <span id="lives">3</span></div>
+            <div class="stat">🔥 Velocidade: <span id="speed">0</span></div>
+        </div>
+        
+        <canvas id="gameCanvas" width="860" height="400"></canvas>
+        
+        <div id="typingArea">
+            <div id="currentLetter">Digite para começar!</div>
+            <input type="text" id="typingInput" autocomplete="off" placeholder="Digite a letra..." maxlength="1">
+        </div>
+
+        <div class="instructions">
+            👻 <strong>Como jogar:</strong> Digite as letras que aparecem para correr e fugir do fantasma! 
+            Cada letra correta acelera você e move o cenário. Se parar de digitar, o fantasma te alcança!
+        </div>
+    </div>
+
+    <div id="gameOver">
+        <h2>Fim de Jogo!</h2>
+        <p>Distância percorrida: <strong id="finalDistance">0</strong>m</p>
+        <p>Pontuação final: <strong id="finalScore">0</strong></p>
+        <p>Letras corretas: <strong id="correctLetters">0</strong></p>
+        <p>Precisão: <strong id="accuracy">0</strong>%</p>
+        <button onclick="restartGame()">Jogar Novamente</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Letras para o jogo
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+        // Estado do jogo
+        let gameState = {
+            running: false,
+            score: 0,
+            distance: 0,
+            lives: 3,
+            correctCount: 0,
+            totalAttempts: 0,
+            currentLetter: '',
+            particles: [],
+            speed: 0,
+            maxSpeed: 15,
+            speedDecay: 0.1,
+            backgroundOffset: 0,
+            treeOffset: 0,
+            cloudOffset: 0
+        };
+
+        // Personagem (player) - posição fixa na tela
+        const player = {
+            x: 400,
+            y: 280,
+            width: 40,
+            height: 40,
+            color: '#4CAF50'
+        };
+
+        // Fantasma - persegue pela esquerda
+        const ghost = {
+            x: 50,
+            y: 280,
+            width: 45,
+            height: 45,
+            baseSpeed: 0.3,
+            color: '#E0E0E0',
+            waveOffset: 0,
+            distance: 0
+        };
+
+        // Árvores para efeito parallax
+        const trees = [];
+        for (let i = 0; i < 10; i++) {
+            trees.push({
+                x: i * 200,
+                height: 60 + Math.random() * 40,
+                type: Math.random() > 0.5 ? 'pine' : 'round'
+            });
+        }
+
+        // Nuvens
+        const clouds = [];
+        for (let i = 0; i < 5; i++) {
+            clouds.push({
+                x: i * 300,
+                y: 50 + Math.random() * 100,
+                width: 60 + Math.random() * 40
+            });
+        }
+
+        // Input
+        const input = document.getElementById('typingInput');
+        
+        function getRandomLetter() {
+            return letters[Math.floor(Math.random() * letters.length)];
+        }
+
+        function newLetter() {
+            gameState.currentLetter = getRandomLetter();
+            document.getElementById('currentLetter').textContent = gameState.currentLetter;
+            input.value = '';
+            input.className = '';
+        }
+
+        input.addEventListener('input', (e) => {
+            const typed = e.target.value.toUpperCase();
+            const target = gameState.currentLetter;
+            
+            if (typed === target) {
+                input.className = 'correct';
+                accelerate();
+                gameState.score += 10;
+                gameState.correctCount++;
+                gameState.totalAttempts++;
+                updateUI();
+                createParticles(player.x + player.width/2, player.y + player.height/2, '#4CAF50');
+                setTimeout(newLetter, 150);
+            } else if (typed !== '') {
+                input.className = 'incorrect';
+                gameState.totalAttempts++;
+                input.value = '';
+            }
+        });
+
+        function accelerate() {
+            // Adiciona velocidade
+            gameState.speed = Math.min(gameState.speed + 3, gameState.maxSpeed);
+            
+            // Empurra o fantasma para trás
+            ghost.distance = Math.max(ghost.distance - 80, 0);
+        }
+
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 15; i++) {
+                gameState.particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 6 - gameState.speed * 0.3,
+                    vy: (Math.random() - 0.5) * 6,
+                    life: 40,
+                    color: color || `hsl(${Math.random() * 60 + 100}, 70%, 60%)`
+                });
+            }
+        }
+
+        function updateSpeed() {
+            // Diminui a velocidade gradualmente
+            if (gameState.speed > 0) {
+                gameState.speed -= gameState.speedDecay;
+                if (gameState.speed < 0) gameState.speed = 0;
+            }
+
+            // Atualiza offsets do cenário baseado na velocidade
+            gameState.backgroundOffset += gameState.speed;
+            gameState.treeOffset += gameState.speed * 0.7;
+            gameState.cloudOffset += gameState.speed * 0.3;
+            
+            // Atualiza distância
+            gameState.distance += gameState.speed * 0.1;
+        }
+
+        function updateGhost() {
+            ghost.waveOffset += 0.1;
+            
+            // Fantasma avança em direção ao player
+            const ghostSpeed = ghost.baseSpeed + (gameState.distance * 0.002);
+            ghost.distance += ghostSpeed;
+            
+            // Posição do fantasma baseada na distância
+            ghost.x = 50 + ghost.distance;
+            
+            // Verifica colisão com o player
+            if (ghost.x + ghost.width > player.x - 20) {
+                gameState.lives--;
+                updateUI();
+                
+                // Reseta posição do fantasma
+                ghost.distance = 0;
+                ghost.x = 50;
+                
+                // Diminui velocidade
+                gameState.speed = Math.max(gameState.speed - 5, 0);
+                
+                createParticles(player.x, player.y, '#f44336');
+                
+                if (gameState.lives <= 0) {
+                    endGame();
+                }
+            }
+        }
+
+        function updateParticles() {
+            for (let i = gameState.particles.length - 1; i >= 0; i--) {
+                const p = gameState.particles[i];
+                p.x += p.vx - gameState.speed * 0.5;
+                p.y += p.vy;
+                p.vx *= 0.98;
+                p.vy *= 0.98;
+                p.life--;
+
+                if (p.life <= 0 || p.x < -10) {
+                    gameState.particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawBackground() {
+            // Céu com estrelas
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Estrelas (movem devagar)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            for (let i = 0; i < 80; i++) {
+                const starX = ((i * 173 - gameState.cloudOffset * 0.2) % canvas.width + canvas.width) % canvas.width;
+                const starY = (i * 97) % (canvas.height - 100);
+                const size = (i % 3) + 1;
+                ctx.fillRect(starX, starY, size, size);
+            }
+
+            // Nuvens
+            ctx.fillStyle = 'rgba(100, 100, 120, 0.3)';
+            clouds.forEach(cloud => {
+                const cloudX = ((cloud.x - gameState.cloudOffset) % (canvas.width + 200) + canvas.width + 200) % (canvas.width + 200) - 100;
+                ctx.beginPath();
+                ctx.arc(cloudX, cloud.y, cloud.width/2, 0, Math.PI * 2);
+                ctx.arc(cloudX + cloud.width/3, cloud.y - 10, cloud.width/3, 0, Math.PI * 2);
+                ctx.arc(cloudX - cloud.width/3, cloud.y - 5, cloud.width/4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Chão com movimento
+            const groundY = 320;
+            ctx.fillStyle = '#0f3460';
+            ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+            
+            // Linha do chão com padrão
+            ctx.strokeStyle = '#533483';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(canvas.width, groundY);
+            ctx.stroke();
+            
+            // Marcas no chão
+            ctx.strokeStyle = 'rgba(83, 52, 131, 0.5)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 30; i++) {
+                const lineX = ((i * 50 - gameState.backgroundOffset) % canvas.width + canvas.width) % canvas.width;
+                ctx.beginPath();
+                ctx.moveTo(lineX, groundY);
+                ctx.lineTo(lineX, groundY + 10);
+                ctx.stroke();
+            }
+        }
+
+        function drawTrees() {
+            trees.forEach(tree => {
+                const treeX = ((tree.x - gameState.treeOffset) % (canvas.width + 400) + canvas.width + 400) % (canvas.width + 400) - 200;
+                const treeY = 320 - tree.height;
+                
+                if (tree.type === 'pine') {
+                    // Árvore de pinheiro
+                    ctx.fillStyle = '#1a4d2e';
+                    ctx.beginPath();
+                    ctx.moveTo(treeX, treeY);
+                    ctx.lineTo(treeX - 15, treeY + tree.height);
+                    ctx.lineTo(treeX + 15, treeY + tree.height);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Tronco
+                    ctx.fillStyle = '#3d2817';
+                    ctx.fillRect(treeX - 5, treeY + tree.height - 20, 10, 20);
+                } else {
+                    // Árvore redonda
+                    ctx.fillStyle = '#1a4d2e';
+                    ctx.beginPath();
+                    ctx.arc(treeX, treeY + 20, 20, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Tronco
+                    ctx.fillStyle = '#3d2817';
+                    ctx.fillRect(treeX - 5, treeY + 35, 10, tree.height - 35);
+                }
+            });
+        }
+
+        function drawPlayer() {
+            // Sombra
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.beginPath();
+            ctx.ellipse(player.x + player.width/2, player.y + player.height + 5, player.width/2, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Corpo do player
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.arc(player.x + player.width/2, player.y + player.height/2, player.width/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Olhos
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(player.x + 15, player.y + 15, 6, 0, Math.PI * 2);
+            ctx.arc(player.x + 28, player.y + 15, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(player.x + 17, player.y + 15, 3, 0, Math.PI * 2);
+            ctx.arc(player.x + 30, player.y + 15, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Boca (sorriso quando rápido, neutro quando devagar)
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            if (gameState.speed > 5) {
+                ctx.arc(player.x + player.width/2, player.y + 20, 10, 0, Math.PI);
+            } else {
+                ctx.moveTo(player.x + 12, player.y + 28);
+                ctx.lineTo(player.x + 30, player.y + 28);
+            }
+            ctx.stroke();
+
+            // Aura de velocidade
+            if (gameState.speed > 8) {
+                const speedAlpha = Math.min(gameState.speed / gameState.maxSpeed, 1);
+                ctx.strokeStyle = `rgba(76, 175, 80, ${speedAlpha * 0.6})`;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2, player.y + player.height/2, player.width/2 + 8, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Linhas de velocidade
+                for (let i = 0; i < 5; i++) {
+                    ctx.strokeStyle = `rgba(76, 175, 80, ${speedAlpha * 0.4})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(player.x - 20 - i * 15, player.y + 10 + i * 5);
+                    ctx.lineTo(player.x - 35 - i * 15, player.y + 10 + i * 5);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function drawGhost() {
+            const wave = Math.sin(ghost.waveOffset) * 3;
+            
+            // Sombra do fantasma
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.beginPath();
+            ctx.ellipse(ghost.x + ghost.width/2, ghost.y + ghost.height + 5, ghost.width/2, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Corpo do fantasma (forma ondulada)
+            ctx.fillStyle = ghost.color;
+            ctx.beginPath();
+            ctx.arc(ghost.x + ghost.width/2, ghost.y + 15, ghost.width/2, Math.PI, 0);
+            
+            // Base ondulada
+            for (let i = 0; i < 3; i++) {
+                const waveX = ghost.x + (i * 15) + 7.5;
+                const waveY = ghost.y + 30 + Math.sin(ghost.waveOffset + i) * 3;
+                ctx.lineTo(waveX, waveY + 15);
+                ctx.lineTo(waveX + 7.5, waveY + 5);
+            }
+            ctx.closePath();
+            ctx.fill();
+            
+            // Olhos
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.ellipse(ghost.x + 15, ghost.y + 15, 4, 6, 0, 0, Math.PI * 2);
+            ctx.ellipse(ghost.x + 30, ghost.y + 15, 4, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Boca (assustadora)
+            ctx.beginPath();
+            ctx.arc(ghost.x + ghost.width/2, ghost.y + 25, 8, 0, Math.PI);
+            ctx.fill();
+        }
+
+        function drawParticles() {
+            gameState.particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life / 40;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('distance').textContent = Math.floor(gameState.distance);
+            document.getElementById('lives').textContent = gameState.lives;
+            document.getElementById('speed').textContent = Math.floor(gameState.speed);
+        }
+
+        function endGame() {
+            gameState.running = false;
+            const accuracy = gameState.totalAttempts > 0 
+                ? Math.round((gameState.correctCount / gameState.totalAttempts) * 100) 
+                : 0;
+            
+            document.getElementById('finalDistance').textContent = Math.floor(gameState.distance);
+            document.getElementById('finalScore').textContent = gameState.score;
+            document.getElementById('correctLetters').textContent = gameState.correctCount;
+            document.getElementById('accuracy').textContent = accuracy;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        function restartGame() {
+            gameState = {
+                running: true,
+                score: 0,
+                distance: 0,
+                lives: 3,
+                correctCount: 0,
+                totalAttempts: 0,
+                currentLetter: '',
+                particles: [],
+                speed: 0,
+                maxSpeed: 15,
+                speedDecay: 0.1,
+                backgroundOffset: 0,
+                treeOffset: 0,
+                cloudOffset: 0
+            };
+            
+            ghost.distance = 0;
+            ghost.x = 50;
+            
+            document.getElementById('gameOver').style.display = 'none';
+            updateUI();
+            newLetter();
+            input.focus();
+            gameLoop();
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            gameState.running = true;
+            newLetter();
+            input.focus();
+            gameLoop();
+        }
+        
+        function voltar() {
+            window.location.href = '../index.html';
+        }
+
+        function gameLoop() {
+            if (!gameState.running) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Atualiza
+            updateSpeed();
+            updateGhost();
+            updateParticles();
+
+            // Desenha (ordem importante para parallax)
+            drawBackground();
+            drawTrees();
+            drawParticles();
+            drawGhost();
+            drawPlayer();
+
+            updateUI();
+
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
+</body>
+</html>

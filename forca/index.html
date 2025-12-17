@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Forca</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .game-container {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        .left-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .right-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .hangman-canvas {
+            display: flex;
+            justify-content: center;
+        }
+
+        canvas {
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .word-display {
+            text-align: center;
+            font-size: 2.5em;
+            letter-spacing: 10px;
+            margin: 20px 0;
+            min-height: 60px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .category {
+            text-align: center;
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
+            gap: 8px;
+            margin: 20px 0;
+        }
+
+        .key {
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .key:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .key:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .errors {
+            color: #e74c3c;
+        }
+
+        .score {
+            color: #27ae60;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .modal p {
+            font-size: 1.3em;
+            margin: 15px 0;
+        }
+
+        .win {
+            color: #27ae60;
+        }
+
+        .lose {
+            color: #e74c3c;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+
+            .word-display {
+                font-size: 1.8em;
+                letter-spacing: 5px;
+            }
+
+            .key {
+                padding: 12px;
+                font-size: 1em;
+            }
+
+            canvas {
+                max-width: 100%;
+                height: auto;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .word-display {
+                font-size: 1.4em;
+                letter-spacing: 3px;
+            }
+
+            .keyboard {
+                grid-template-columns: repeat(7, 1fr);
+                gap: 5px;
+            }
+
+            .key {
+                padding: 10px 5px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Jogo da Forca</h1>
+        
+        <div class="game-area">
+            <div class="category" id="category"></div>
+
+            <div class="game-container">
+                <div class="left-section">
+                    <div class="hangman-canvas">
+                        <canvas id="hangman" width="300" height="300"></canvas>
+                    </div>
+
+                     <div class="info">
+                        <div class="info-item errors">
+                            ❌ Erros: <span id="errors">0</span>/6
+                        </div>
+                        
+                    </div>
+
+                </div>
+
+                <div class="right-section">
+                    <div class="keyboard" id="keyboard"></div>
+                    <div class="word-display" id="wordDisplay"></div>
+            
+                    <div class="buttons">
+                        <button class="btn btn-primary" onclick="newGame()">🎲 Nova Palavra</button>
+                        <button class="btn btn-secondary" onclick="revealHint()">💡 Dica</button>
+                        <button class="btn btn-secondary" onclick="voltar()">Voltar</button>
+                    </div>
+
+                </div>                
+            </div>           
+        </div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle"></h2>
+            <p id="modalMessage"></p>
+            <p id="modalWord"></p>
+            <button class="btn btn-primary" onclick="closeModal(); newGame();">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <script>
+        const words = [
+            { word: 'PIANO', category: 'Música', hint: 'Instrumento de teclas' },
+            { word: 'ELEFANTE', category: 'Animais', hint: 'Maior animal terrestre' },
+            { word: 'COMPUTADOR', category: 'Tecnologia', hint: 'Máquina eletrônica para processar dados' },
+            { word: 'CHOCOLATE', category: 'Alimentos', hint: 'Doce feito de cacau' },
+            { word: 'BRASIL', category: 'Geografia', hint: 'Maior país da América do Sul' },
+            { word: 'VIOLAO', category: 'Música', hint: 'Instrumento de cordas' },
+            { word: 'DIAMANTE', category: 'Minerais', hint: 'Pedra preciosa mais dura' },
+            { word: 'ASTRONAUTA', category: 'Profissões', hint: 'Viaja para o espaço' },
+            { word: 'PIRAMIDE', category: 'História', hint: 'Construção do Egito Antigo' },
+            { word: 'BORBOLETA', category: 'Animais', hint: 'Inseto com asas coloridas' },
+            { word: 'TELEFONE', category: 'Tecnologia', hint: 'Dispositivo para fazer ligações' },
+            { word: 'FUTEBOL', category: 'Esportes', hint: 'Esporte mais popular do Brasil' },
+            { word: 'PIZZA', category: 'Alimentos', hint: 'Comida italiana redonda' },
+            { word: 'GIRASSOL', category: 'Plantas', hint: 'Flor que acompanha o sol' },
+            { word: 'LARANJA', category: 'Alimentos', hint: 'Fruta usada para fazer suco' },
+            { word: 'CACHORRO', category: 'Animais', hint: 'Melhor amigo do homem' }
+        ];
+
+        let state = {
+            word: '',
+            category: '',
+            hint: '',
+            guessed: [],
+            errors: 0,
+            //score: 0,
+            gameOver: false,
+            hintUsed: false
+        };
+
+        const canvas = document.getElementById('hangman');
+        const ctx = canvas.getContext('2d');
+
+        function initGame() {
+            createKeyboard();
+            newGame();
+        }
+
+        function createKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            
+            for (let letter of letters) {
+                const btn = document.createElement('button');
+                btn.className = 'key';
+                btn.textContent = letter;
+                btn.onclick = () => guessLetter(letter);
+                btn.id = `key-${letter}`;
+                keyboard.appendChild(btn);
+            }
+        }
+
+        function newGame() {
+            const wordData = words[Math.floor(Math.random() * words.length)];
+            state = {
+                word: wordData.word,
+                category: wordData.category,
+                hint: wordData.hint,
+                guessed: [],
+                errors: 0,
+                gameOver: false,
+                hintUsed: false
+            };
+            
+            updateDisplay();
+            resetKeyboard();
+            drawHangman();
+        }
+        
+         function voltar() {
+            window.location.href = '../index.html';
+        }
+
+        function guessLetter(letter) {
+            if (state.gameOver || state.guessed.includes(letter)) return;
+            
+            state.guessed.push(letter);
+            document.getElementById(`key-${letter}`).disabled = true;
+            
+            if (!state.word.includes(letter)) {
+                state.errors++;
+                drawHangman();
+            }
+            
+            updateDisplay();
+            checkGameOver();
+        }
+
+        function updateDisplay() {
+            const wordDisplay = document.getElementById('wordDisplay');
+            const displayWord = state.word.split('').map(letter => 
+                state.guessed.includes(letter) ? letter : '_'
+            ).join(' ');
+            wordDisplay.textContent = displayWord;
+            
+            document.getElementById('category').textContent = `📂 Categoria: ${state.category}`;
+            document.getElementById('errors').textContent = state.errors;
+            //document.getElementById('score').textContent = state.score;
+        }
+
+        function drawHangman() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            
+            // Base
+            if (state.errors > 0) {
+                ctx.beginPath();
+                ctx.moveTo(20, 280);
+                ctx.lineTo(180, 280);
+                ctx.stroke();
+            }
+            
+            // Poste vertical
+            if (state.errors > 1) {
+                ctx.beginPath();
+                ctx.moveTo(60, 280);
+                ctx.lineTo(60, 20);
+                ctx.stroke();
+            }
+            
+            // Poste horizontal
+            if (state.errors > 2) {
+                ctx.beginPath();
+                ctx.moveTo(60, 20);
+                ctx.lineTo(200, 20);
+                ctx.stroke();
+            }
+            
+            // Corda
+            if (state.errors > 3) {
+                ctx.beginPath();
+                ctx.moveTo(200, 20);
+                ctx.lineTo(200, 60);
+                ctx.stroke();
+            }
+            
+            // Cabeça
+            if (state.errors > 4) {
+                ctx.beginPath();
+                ctx.arc(200, 80, 20, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            // Corpo
+            if (state.errors > 5) {
+                ctx.beginPath();
+                ctx.moveTo(200, 100);
+                ctx.lineTo(200, 180);
+                ctx.stroke();
+                
+                // Braços
+                ctx.beginPath();
+                ctx.moveTo(200, 120);
+                ctx.lineTo(170, 140);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(200, 120);
+                ctx.lineTo(230, 140);
+                ctx.stroke();
+                
+                // Pernas
+                ctx.beginPath();
+                ctx.moveTo(200, 180);
+                ctx.lineTo(170, 220);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(200, 180);
+                ctx.lineTo(230, 220);
+                ctx.stroke();
+            }
+        }
+
+        function checkGameOver() {
+            const won = state.word.split('').every(letter => state.guessed.includes(letter));
+            const lost = state.errors >= 6;
+            
+            if (won) {
+                state.gameOver = true;
+                const points = state.hintUsed ? 5 : 10;
+                //state.score += points;
+                showModal(true);
+            } else if (lost) {
+                state.gameOver = true;
+                showModal(false);
+            }
+        }
+
+        function showModal(won) {
+            const modal = document.getElementById('modal');
+            const title = document.getElementById('modalTitle');
+            const message = document.getElementById('modalMessage');
+            const wordReveal = document.getElementById('modalWord');
+            
+            if (won) {
+                title.textContent = '🎉 Parabéns!';
+                title.className = 'win';
+                //message.textContent = `Você venceu! ${state.hintUsed ? '+5' : '+10'} pontos`;
+            } else {
+                title.textContent = '😢 Que pena!';
+                title.className = 'lose';
+                message.textContent = 'Você perdeu! Tente novamente.';
+                wordReveal.textContent = `A palavra era: ${state.word}`;
+            }            
+            
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function resetKeyboard() {
+            const keys = document.querySelectorAll('.key');
+            keys.forEach(key => key.disabled = false);
+        }
+
+        function revealHint() {
+            if (!state.hintUsed && !state.gameOver) {
+                alert(`💡 Dica: ${state.hint}`);
+                state.hintUsed = true;
+            }
+        }
+
+        // Suporte para teclado físico
+        document.addEventListener('keydown', (e) => {
+            const letter = e.key.toUpperCase();
+            if (/^[A-Z]$/.test(letter) && !state.gameOver) {
+                guessLetter(letter);
+            }
+        });
+
+        initGame();
+    </script>
+</body>
+</html>

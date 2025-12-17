@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Jogo da Memória — Completo</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <h1>Jogo da Memória</h1>
+    <div class="controls">
+      <label>Dificuldade
+        <select id="difficulty">
+          <option value="4">Fácil (4 pares)</option>
+          <option value="6">Médio (6 pares)</option>
+          <option value="8" selected>Difícil (8 pares)</option>
+          <option value="12">Extremo (12 pares)</option>
+        </select>
+      </label>
+
+      <label>Tema
+        <select id="theme">
+          <option value="light">Claro</option>
+          <option value="colorful" selected>Colorido</option>
+        </select>
+      </label>
+
+      <button id="startBtn">Iniciar</button>
+      <button id="voltarBtn">Voltar</button>
+      
+    </div>
+  </header>
+
+  <section class="status">
+    <div>Tempo: <span id="timer">00:00</span></div>
+    <div>Movimentos: <span id="moves">0</span></div>
+    <div>Pares: <span id="matches">0</span></div>
+  </section>
+
+  <main>
+    <section id="board" class="board" aria-label="Tabuleiro do jogo"></section>
+
+    <aside class="side">
+      <div class="card panel">
+        <h3>Placar</h3>
+        <div>Melhor tempo: <span id="bestTime">—</span></div>
+        <div>Menos movimentos: <span id="bestMoves">—</span></div>
+      </div>
+
+      <div class="card panel history">
+        <h3>Histórico</h3>
+        <ol id="historyList"></ol>
+      </div>
+
+      <div class="card panel tips">
+        <h3>Dicas</h3>
+        <ul>
+          <li>Use teclado: Tab navega, Enter/Space vira cartas.</li>
+          <li>Escolha tema e dificuldade antes de iniciar.</li>
+        </ul>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
