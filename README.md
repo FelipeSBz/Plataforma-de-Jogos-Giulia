@@ -1,4 +1,4 @@
-Plataforma de Jogos Giulia é uma plataforma de jogos destinada a crianças de 5 anos ou mais.
+Plataforma de Jogos Giulia é uma plataforma de jogos destinada para crianças de 5 anos ou mais.
 
 INSTALAÇÃO
 1. Baixe o arquivo de instalação;
